@@ -55,4 +55,6 @@ Or use VS Code Live Server / `npx serve`. Then open `http://127.0.0.1:5000`.
 
 ## License
 
-[MIT](LICENSE)
+Copyright © 2026 [lzhai4892](https://github.com/lzhai4892).
+
+This project is released under the [MIT License](LICENSE). You may use, copy, modify, and distribute it, including in commercial work, if you keep the copyright notice and license text. The software is provided as-is, without warranty.
