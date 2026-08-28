@@ -1,0 +1,85 @@
+{
+  "options": {
+    "buffer_distance": 300,
+    "min_overlap_length": 75,
+    "min_target_overlap_ratio": 10,
+    "max_angle_diff_deg": 30,
+    "bearing_window_length": 500,
+    "angle_mode": "undirected",
+    "enable_strong_fallback": true,
+    "keep_duplicates": false,
+    "custom_expression_template": "{WPITEM}-{WPITMSEG}",
+    "reference_columns": [
+      "WPITEM",
+      "WPITMSEG"
+    ]
+  },
+  "wp_features": 10663,
+  "wp_crs": "EPSG:3087",
+  "summaries": [
+    {
+      "id": "left_turn_protperm",
+      "label": "Left-Turn ProtPerm to Prot Only",
+      "summary": {
+        "total": 620,
+        "matched": 387,
+        "unmatched": 233,
+        "match_pct": 62.4,
+        "unique_wp_ids": 238,
+        "qc_flags": {
+          "Unmatched": 221,
+          "Verified Match": 346,
+          "Verified Parallel Fallback": 41,
+          "No Match - Angle Mismatch": 6,
+          "No Match - Low Target Ratio": 2,
+          "No Match - Low Overlap": 4
+        },
+        "duration_seconds": 0.66
+      },
+      "warnings": []
+    },
+    {
+      "id": "lpi_approaches",
+      "label": "LPI approaches",
+      "summary": {
+        "total": 2494,
+        "matched": 1097,
+        "unmatched": 1397,
+        "match_pct": 44,
+        "unique_wp_ids": 456,
+        "qc_flags": {
+          "Verified Match": 1021,
+          "Unmatched": 850,
+          "No Match - Angle Mismatch": 525,
+          "Verified Parallel Fallback": 76,
+          "No Match - Low Overlap": 22
+        },
+        "duration_seconds": 2.18
+      },
+      "warnings": [
+        "Filtered out 887 non-line or empty geometry records."
+      ]
+    },
+    {
+      "id": "yellow_backplate",
+      "label": "Yellow Retroreflect Backplate",
+      "summary": {
+        "total": 2541,
+        "matched": 1512,
+        "unmatched": 1029,
+        "match_pct": 59.5,
+        "unique_wp_ids": 692,
+        "qc_flags": {
+          "Unmatched": 926,
+          "Verified Parallel Fallback": 229,
+          "Verified Match": 1283,
+          "No Match - Angle Mismatch": 83,
+          "No Match - Low Overlap": 16,
+          "No Match - Low Target Ratio": 4
+        },
+        "duration_seconds": 2.33
+      },
+      "warnings": []
+    }
+  ]
+}

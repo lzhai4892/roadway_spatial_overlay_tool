@@ -1,0 +1,14 @@
+{
+  "label": "LPI approaches",
+  "summary": {
+    "total": 2494,
+    "matched": 1097,
+    "unmatched": 1397,
+    "match_pct": 44,
+    "unique_wp_ids": 456,
+    "duration_seconds": 2.62
+  },
+  "warnings": [
+    "Filtered out 887 non-line or empty geometry records."
+  ]
+}

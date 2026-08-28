@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GeoCorridor Studio Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #0b0f19;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      padding: 3rem 15%;
+    }
+    h1, h2, h3 { font-family: 'Outfit', sans-serif; color: #a5b4fc; }
+    code { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; color: #38bdf8; }
+    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid rgba(255,255,255,0.1); padding: 0.75rem; text-align: left; }
+    th { background: rgba(99,102,241,0.15); color: #c7d2fe; }
+    a { color: #38bdf8; }
+    .card { background: rgba(18,24,38,0.85); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; }
+  </style>
+</head>
+<body>
+  <h1>Roadway Line-to-Line Overlay Tool v1.0</h1>
+  <p>Spatial GIS line-to-line overlay for transportation planning. Geometry only — no linear referencing locate.</p>
+  <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 1.5rem 0;">
+
+  <h2>1. Mathematical Methodology</h2>
+  <div class="card">
+    <p>This tool evaluates <strong>spatial</strong> alignment between a <strong>Destination (Target) Layer</strong> and a <strong>Reference Layer</strong>. It does not use roadway IDs, mileposts, or Work Program / RCI linear-referencing locate fields to find matches:</p>
+    <ul>
+      <li><strong>Corridor Buffer:</strong> Default 300 ft buffer around reference centerlines.</li>
+      <li><strong>Minimum Overlap:</strong> Overlap length &ge; 300 ft and overlap ratio &ge; 10% of target length (default Min Target Ratio).</li>
+      <li><strong>Undirected Local Bearing:</strong> Bearings are evaluated over a 500 ft window centered on the overlap midpoint. Direction is evaluated modulo 180° / 90° to handle opposing digitizing directions.</li>
+      <li><strong>Parallel Fallback:</strong> Optional second rule. User sets min destination coverage (default 75%) and max distance (default 30 ft) for short dests that fail the primary min-overlap test.</li>
+    </ul>
+  </div>
+
+  <h2>2. Supported Input Formats</h2>
+  <ul>
+    <li><strong>Zipped Shapefiles (.zip)</strong> containing <code>.shp</code>, <code>.dbf</code>, <code>.shx</code>, and <code>.prj</code>.</li>
+    <li><strong>GeoJSON (.geojson / .json)</strong></li>
+    <li><strong>KML (.kml)</strong></li>
+    <li><strong>GeoPackage (.gpkg)</strong></li>
+    <li><strong>CSV (.csv)</strong> with WKT geometry or coordinates.</li>
+  </ul>
+
+  <h2>3. Attribute Transfer & Expressions</h2>
+  <p>You can choose single reference columns or compose templates such as <code>{ITEMSEG} - {high_yr_ph}</code> or <code>{WPITEM}-{WPITMSEG}</code>. Those values are labels only; matching stays spatial.</p>
+</body>
+</html>

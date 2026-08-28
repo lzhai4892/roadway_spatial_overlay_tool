@@ -1,0 +1,58 @@
+{
+  "settings": {
+    "buffer_ft": 300,
+    "min_overlap_ft": 75,
+    "min_target_ratio_pct": 30,
+    "max_angle_deg": 30,
+    "bearing_window_ft": 500,
+    "angle_mode": "undirected",
+    "keep_duplicates": false,
+    "wp_id_expression": "{WPITEM}-{WPITMSEG}",
+    "reference": "Work_Program_Identify (EPSG:3087 reprojected to WGS84; 10,663 exploded line parts)"
+  },
+  "results": [
+    {
+      "layer": "Left-Turn ProtPerm to Prot Only",
+      "id": "left_turn_protperm",
+      "total": 620,
+      "matched": 385,
+      "unmatched": 235,
+      "match_pct": 62.1,
+      "unique_wp_ids": 228,
+      "outputs": [
+        "left_turn_protperm_with_WP.geojson",
+        "left_turn_protperm_with_WP.csv",
+        "left_turn_protperm_with_WP_shapefile.zip"
+      ]
+    },
+    {
+      "layer": "LPI approaches",
+      "id": "lpi_approaches",
+      "total": 2494,
+      "note": "887 empty/non-line records dropped before overlay (source had 3381)",
+      "matched": 1097,
+      "unmatched": 1397,
+      "match_pct": 44.0,
+      "unique_wp_ids": 456,
+      "outputs": [
+        "lpi_approaches_with_WP.geojson",
+        "lpi_approaches_with_WP.csv",
+        "lpi_approaches_with_WP_shapefile.zip"
+      ]
+    },
+    {
+      "layer": "Yellow Retroreflect Backplate",
+      "id": "yellow_backplate",
+      "total": 2541,
+      "matched": 1493,
+      "unmatched": 1048,
+      "match_pct": 58.8,
+      "unique_wp_ids": 665,
+      "outputs": [
+        "yellow_backplate_with_WP.geojson",
+        "yellow_backplate_with_WP.csv",
+        "yellow_backplate_with_WP_shapefile.zip"
+      ]
+    }
+  ]
+}

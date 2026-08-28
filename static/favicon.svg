@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Line-to-line overlay">
+  <rect width="32" height="32" rx="7" fill="#18181b"/>
+  <path d="M5 23C11 19 15 14 27 11" fill="none" stroke="#64748b" stroke-width="2.1" stroke-linecap="round" stroke-dasharray="2.4 2"/>
+  <path d="M5 19C11 15 15 10 27 7" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

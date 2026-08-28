@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roadway Line-to-Line Overlay Tool v1.0</title>
+  <meta name="description" content="Spatial GIS line-to-line overlay v1.0. Geometry only — no linear referencing locate. 100% client-side.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="./static/favicon.svg?v=v2">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./static/css/styles.css?v=v43">
+</head>
+<body>
+  <!-- Main Workbench App Container -->
+  <div class="app-layout">
+    
+    <!-- Top Utility Header (Minimal & Sleek) -->
+    <header class="top-nav">
+      <div class="nav-left">
+        <div class="app-brand">
+          <img class="brand-icon-svg" src="./static/favicon.svg" width="32" height="32" alt="">
+          <div class="brand-copy">
+            <p class="app-kicker">Roadway</p>
+            <div class="app-title-row">
+              <h1 class="app-title">Line-to-Line Overlay</h1>
+              <span class="app-version">v1.0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-right">
+        <button type="button" id="btn-open-guide-header" class="sci-btn-subtle" title="Open match-rule guide">
+          <i class="fa-regular fa-circle-question"></i> Guide
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Split Container -->
+    <div class="workspace-body" id="workspace-container">
+      
+      <!-- Left Sidebar: Parameters & Input Controls (Draggable Width with Responsive Wrapping) -->
+      <aside class="sidebar-pane" id="sidebar-pane">
+        <div class="sidebar-scroll">
+        
+        <!-- Group 1: Layer Ingestion -->
+        <fieldset class="sci-fieldset">
+          <legend>
+            <span>
+              <i class="fa-solid fa-layer-group"></i> 1. Input layers
+              <button type="button" class="help-tip" aria-label="Help: Input files" data-tip="Line layers only. Shapefile as a .zip (or loose .shp + .dbf, plus .prj if you have it), GeoJSON, KML/KMZ, or CSV with coordinates. Same formats for Destination and Reference.">?</button>
+            </span>
+            <button type="button" id="btn-load-sample" class="sci-btn-subtle" title="Load the Left-Turn ProtPerm and Work Program sample layers">
+              <i class="fa-solid fa-flask"></i> Load sample demo
+            </button>
+          </legend>
+          <p class="layer-format-hint">Shapefile (.zip or .shp), GeoJSON, KML/KMZ, or CSV</p>
+
+          <!-- Target Layer -->
+          <div class="layer-control-block" id="target-block" title="Drop a file here, or browse">
+            <div class="layer-title-row">
+              <span class="layer-role-with-tip">
+                <span class="layer-role-tag role-target"><i class="fa-solid fa-bullseye"></i> Destination</span>
+                <button type="button" class="help-tip" aria-label="Help: Destination" data-tip="This layer receives the overlay attributes. Matching is spatial only; when a reference line hits, its ID labels and the match stats (status, overlap, angle, QC) are written onto these destination features.">?</button>
+              </span>
+            </div>
+            <div class="file-input-wrapper">
+              <label class="file-browse-btn" for="target-file-input" title="Shapefile, GeoJSON, KML/KMZ, or CSV"><i class="fa-solid fa-folder-open"></i> Browse</label>
+              <span class="file-name-text is-empty" id="target-filename">No file</span>
+              <input type="file" id="target-file-input" class="hidden-input" accept=".zip,.shp,.shx,.dbf,.prj,.geojson,.json,.kml,.kmz,.csv" multiple>
+            </div>
+            <div class="layer-meta-bar hidden" id="target-meta">
+              <span>Features: <b id="target-count">-</b></span>
+              <span>Multi-Part: <b id="target-multipart" class="text-warn">-</b></span>
+              <span>CRS: <b id="target-crs">-</b></span>
+            </div>
+            <div class="alert-banner hidden" id="target-alert"></div>
+            <div class="form-row hidden" id="dest-id-row">
+              <div class="label-with-hint">
+                <label class="sci-label" for="dest-id-field">Destination ID field:</label>
+                <button type="button" class="help-tip" aria-label="Help: Destination ID field" data-tip="Which destination attribute to show as Destination ID. Demo data has LocationID; your file may use OBJECTID or another field. This is a label only — it does not change matching.">?</button>
+              </div>
+              <select id="dest-id-field" class="sci-select"></select>
+            </div>
+          </div>
+
+          <!-- Reference Layer -->
+          <div class="layer-control-block" id="ref-block" title="Drop a file here, or browse">
+            <div class="layer-title-row">
+              <span class="layer-role-with-tip">
+                <span class="layer-role-tag role-ref"><i class="fa-solid fa-road"></i> Reference</span>
+                <button type="button" class="help-tip" aria-label="Help: Reference" data-tip="This layer is the corridor to match against. After a spatial hit, fields you pick here are used to build the Matched ID on destination. They are not used to find the pair.">?</button>
+              </span>
+            </div>
+            <div class="file-input-wrapper">
+              <label class="file-browse-btn" for="ref-file-input" title="Shapefile, GeoJSON, KML/KMZ, or CSV"><i class="fa-solid fa-folder-open"></i> Browse</label>
+              <span class="file-name-text is-empty" id="ref-filename">No file</span>
+              <input type="file" id="ref-file-input" class="hidden-input" accept=".zip,.shp,.shx,.dbf,.prj,.geojson,.json,.kml,.kmz,.csv" multiple>
+            </div>
+            <div class="layer-meta-bar hidden" id="ref-meta">
+              <span>Features: <b id="ref-count">-</b></span>
+              <span>Multi-Part: <b id="ref-multipart" class="text-warn">-</b></span>
+              <span>CRS: <b id="ref-crs">-</b></span>
+            </div>
+            <div class="alert-banner hidden" id="ref-alert"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="label-with-hint">
+              <label class="sci-label" for="param-crs-select">If file has no .prj:</label>
+              <button type="button" class="help-tip" aria-label="Help: CRS fallback" data-tip="Applies only at load time, and only when the file is projected with no CRS tag. After load, overlay always runs in WGS84. Change this before browsing a new file.">?</button>
+            </div>
+            <select id="param-crs-select" class="sci-select">
+              <option value="4326" selected>EPSG:4326 - WGS84 (default)</option>
+              <option value="26917">EPSG:26917 - Florida UTM 17N</option>
+              <option value="26916">EPSG:26916 - Florida UTM 16N</option>
+              <option value="2236">EPSG:2236 - FL State Plane East (ft)</option>
+              <option value="2237">EPSG:2237 - FL State Plane West (ft)</option>
+              <option value="3087">EPSG:3087 - Florida GDL Albers (HARN)</option>
+              <option value="3857">EPSG:3857 - Web Mercator</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <fieldset class="sci-fieldset">
+          <legend>
+            <span><i class="fa-solid fa-sliders"></i> 2. Match rules</span>
+            <button type="button" id="btn-open-guide" class="sci-btn-guide" title="Open match-rule guide">
+              <i class="fa-regular fa-circle-question"></i> Details
+            </button>
+          </legend>
+          <p id="sample-preset-banner" class="sample-banner hidden">Sample preset on: min overlap 75 ft, Unique Matched IDs, {WPITEM}-{WPITMSEG}. Upload your own files to keep or change these.</p>
+          
+          <div class="compact-grid-2">
+            <div class="form-row">
+              <div class="label-with-hint">
+                <label class="sci-label" for="param-buffer">Buffer (ft):</label>
+                <button type="button" class="help-tip" aria-label="Help: Buffer" data-tip="Search corridor width around the destination line. Captures centerline GPS offset.">?</button>
+              </div>
+              <input type="number" id="param-buffer" class="sci-input" value="300" min="10" max="2000" step="10">
+            </div>
+            <div class="form-row">
+              <div class="label-with-hint">
+                <label class="sci-label" for="param-min-overlap">Min Overlap (ft):</label>
+                <button type="button" class="help-tip" aria-label="Help: Min Overlap" data-tip="Minimum longitudinal distance shared along the corridor to qualify as a match. Prevents brief intersection snags.">?</button>
+              </div>
+              <input type="number" id="param-min-overlap" class="sci-input" value="300" min="10" max="5000" step="10">
+            </div>
+          </div>
+
+          <div class="compact-grid-2">
+            <div class="form-row">
+              <div class="label-with-hint">
+                <label class="sci-label" for="param-target-ratio">Min Target Ratio (%):</label>
+                <button type="button" class="help-tip" aria-label="Help: Min Target Ratio" data-tip="Share of the destination line that must sit in the matched corridor. 10% lets a short work-program item match a long destination. Raise it if you want more of the destination covered.">?</button>
+              </div>
+              <input type="number" id="param-target-ratio" class="sci-input" value="10" min="1" max="100" step="5">
+            </div>
+            <div class="form-row">
+              <div class="label-with-hint">
+                <label class="sci-label" for="param-max-angle">Max Angle Delta (°):</label>
+                <button type="button" class="help-tip" aria-label="Help: Max Angle Delta" data-tip="Maximum local bearing difference at the overlap. This is the same value written to Angle Diff.">?</button>
+              </div>
+              <input type="number" id="param-max-angle" class="sci-input" value="30" min="1" max="180" step="1">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="label-with-hint">
+              <label class="sci-label" for="param-bearing-window">Bearing Window (ft):</label>
+              <button type="button" class="help-tip" aria-label="Help: Bearing Window" data-tip="Measures heading on a short stretch around the overlap — not the whole destination or reference line. A long or curving line farther away does not change the local angle.">?</button>
+            </div>
+            <input type="number" id="param-bearing-window" class="sci-input" value="500" min="50" max="5000" step="50">
+          </div>
+
+          <div class="form-row">
+            <div class="label-with-hint">
+              <label class="sci-label">Angle Comparison Mode:</label>
+              <button type="button" class="help-tip" aria-label="Help: Angle Comparison Mode" data-tip="Ignore direction treats reverse digitizing as the same corridor (0°–90°). Check vertex direction keeps travel sense (0°–180°).">?</button>
+            </div>
+            <div class="radio-inline-group">
+              <label class="sci-radio">
+                <input type="radio" name="angle-mode" value="undirected" checked>
+                <span>Ignore line direction</span>
+              </label>
+              <label class="sci-radio">
+                <input type="radio" name="angle-mode" value="directed">
+                <span>Check vertex direction</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="fallback-block">
+            <div class="label-with-hint">
+              <label class="sci-checkbox">
+                <input type="checkbox" id="param-fallback-toggle" checked>
+                <span>Parallel Fallback</span>
+              </label>
+              <button type="button" id="help-fallback" class="help-tip" aria-label="Help: Parallel Fallback" data-tip="Second chance for short destination lines that fail Min Overlap. Still needs Min Coverage and Max Distance. Heading can be looser than Max Angle: fallback allows up to the larger of Max Angle and 45° (now 45°). Primary matches still use Max Angle only.">?</button>
+            </div>
+            <div class="compact-grid-2" id="fallback-options">
+              <div class="form-row">
+                <div class="label-with-hint">
+                  <label class="sci-label" for="param-fallback-ratio">Min Coverage (%):</label>
+                  <button type="button" class="help-tip" aria-label="Help: Fallback Min Coverage" data-tip="Share of the destination that must sit on the reference. Default 75% — typical for short intersection sticks.">?</button>
+                </div>
+                <input type="number" id="param-fallback-ratio" class="sci-input" value="75" min="1" max="100" step="5">
+              </div>
+              <div class="form-row">
+                <div class="label-with-hint">
+                  <label class="sci-label" for="param-fallback-distance">Max Distance (ft):</label>
+                  <button type="button" class="help-tip" aria-label="Help: Fallback Max Distance" data-tip="How far the overlap midpoint may sit from the reference line. Default 30 ft — same corridor, small GPS offset.">?</button>
+                </div>
+                <input type="number" id="param-fallback-distance" class="sci-input" value="30" min="1" max="300" step="5">
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="label-with-hint">
+              <label class="sci-checkbox" for="param-export-match-rules">
+                <input type="checkbox" id="param-export-match-rules" checked>
+                <span>Include match rules in shapefile zip</span>
+              </label>
+              <button type="button" class="help-tip" aria-label="Help: Export match rules" data-tip="Default on. The shapefile .zip gets a sidecar text file next to the .shp — ArcGIS and QGIS ignore it. Uncheck for geometry and attributes only. The sidecar is the last Run, not later slider edits.">?</button>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="sci-fieldset">
+          <legend>
+            <span><i class="fa-solid fa-tags"></i> 3. Output labels</span>
+            <button type="button" class="help-tip" aria-label="Help: Output labels" data-tip="Pick reference attributes to compose Matched ID after a spatial hit — for example {WPITEM}-{WPITMSEG}. Label only; those fields are not used to find the match.">?</button>
+          </legend>
+          <div class="form-row">
+            <div class="fieldset-header-row" style="margin-bottom: 4px;">
+              <label class="sci-label" style="margin-bottom: 0;">Reference fields for Matched ID:</label>
+              <button type="button" id="btn-clear-columns" class="sci-btn-link" title="Deselect all columns">Clear All</button>
+            </div>
+            <div class="col-pill-container" id="column-buttons-container">
+              <span class="empty-hint">Load a reference layer to pick label fields</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="label-with-hint">
+              <label class="sci-label" for="custom-expr-input">ID expression:</label>
+              <button type="button" class="help-tip" aria-label="Help: ID expression" data-tip="Template for the new ID, using reference fields in {braces}. Example: {WPITEM}-{WPITMSEG}. Stamped onto destination after a spatial match; not used to find the pair.">?</button>
+            </div>
+            <div class="expr-input-wrap">
+              <input type="text" id="custom-expr-input" class="sci-input" placeholder="{ITEMSEG} - {high_yr_ph}">
+              <button type="button" id="btn-reset-expr" class="sci-btn-guide expr-reset-btn" title="Reset expression from highlighted columns">
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="label-with-hint">
+              <label class="sci-label">If several references match one destination:</label>
+              <button type="button" class="help-tip" aria-label="Help: duplicate Matched IDs" data-tip="When one destination line hits more than one reference part, Keep duplicate Matched IDs lists every ID in that cell. Unique Matched IDs keeps each ID once. Count still lists every hit.">?</button>
+            </div>
+            <div class="radio-inline-group">
+              <label class="sci-radio">
+                <input type="radio" name="duplicate-mode" value="keep" checked>
+                <span>Keep duplicate Matched IDs</span>
+              </label>
+              <label class="sci-radio">
+                <input type="radio" name="duplicate-mode" value="dedup">
+                <span>Unique Matched IDs</span>
+              </label>
+            </div>
+          </div>
+        </fieldset>
+
+        </div>
+
+        <!-- Action Area -->
+        <div class="execution-pane">
+          <button id="btn-run-overlay" class="sci-btn sci-btn-primary full-width is-inactive" title="Load both layers first" aria-disabled="true" aria-describedby="run-hint">
+            <i class="fa-solid fa-play"></i> Run Line-to-Line Overlay
+          </button>
+          <p id="run-hint" class="stale-results-note hidden" role="status" aria-live="polite"></p>
+          
+          <div id="progress-container" class="progress-wrapper hidden">
+            <div class="progress-track">
+              <div id="progress-bar-fill" class="progress-fill"></div>
+            </div>
+            <span id="progress-label" class="progress-text" aria-live="polite">Processing...</span>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- Horizontal Draggable Splitter Handle -->
+      <div class="resizer-col" id="sidebar-resizer" title="Click and drag to resize left sidebar">
+        <div class="resizer-handle-grip"></div>
+      </div>
+
+      <!-- Right Main Workstation: Map View + Data Grid (Vertical Resizable Split) -->
+      <main class="workstation-pane" id="workstation-pane">
+        
+        <!-- Top Half: Map View Pane -->
+        <div class="map-pane" id="map-pane">
+          <div class="map-stage">
+            <div id="map-container" class="map-view"></div>
+            <div id="map-empty-hint" class="map-empty-hint" role="status" aria-live="polite">
+              <p>Load both a destination and a reference, then Run.</p>
+            </div>
+            <div id="map-measure-readout" class="map-measure-readout is-hidden" hidden>
+              <span id="map-measure-text">Click to start a path</span>
+              <span class="map-measure-actions">
+                <button type="button" id="btn-measure-undo" class="map-measure-mini" title="Remove last vertex">Undo</button>
+                <button type="button" id="btn-measure-clear" class="map-measure-mini" title="Clear measurement">Clear</button>
+              </span>
+            </div>
+            <aside id="map-inspector" class="map-inspector is-hidden" hidden>
+              <div class="map-inspector-head">
+                <span id="map-inspector-title" class="map-inspector-title">Segment</span>
+                <button type="button" id="btn-close-inspector" class="map-inspector-close" title="Close details" aria-label="Close segment details">&times;</button>
+              </div>
+              <div id="map-inspector-body" class="map-inspector-body"></div>
+            </aside>
+            <div class="map-tool-stack" id="map-tool-stack">
+              <button type="button" id="btn-toggle-map-stack" class="map-stack-toggle" aria-expanded="true" aria-controls="map-stack-body" title="Show or hide map tools">
+                <i class="fa-solid fa-sliders"></i>
+                <span class="map-stack-toggle-label">Map Tools</span>
+                <i class="fa-solid fa-chevron-left map-stack-chevron" aria-hidden="true"></i>
+              </button>
+              <div class="map-stack-body" id="map-stack-body">
+                <label class="map-stack-field" for="basemap-select">
+                  <span>Basemap</span>
+                  <select id="basemap-select" class="palette-select" title="OpenFreeMap streets, Esri aerial, or no basemap">
+                    <option value="liberty" selected>Liberty</option>
+                    <option value="positron">Positron</option>
+                    <option value="bright">Bright</option>
+                    <option value="dark">Dark</option>
+                    <option value="satellite">Aerial</option>
+                    <option value="none">None</option>
+                  </select>
+                </label>
+                <label class="map-stack-field" for="palette-select">
+                  <span>Theme</span>
+                  <select id="palette-select" class="palette-select" title="Switch muted color theme">
+                    <option value="forest" selected>Forest &amp; Slate</option>
+                    <option value="nordic">Nordic Teal &amp; Amber</option>
+                    <option value="indigo">Indigo &amp; Burgundy</option>
+                    <option value="olive">Charcoal &amp; Olive</option>
+                  </select>
+                </label>
+                <button type="button" id="btn-zoom-extent" class="tool-btn map-stack-extent" title="Zoom to Layer Extents">
+                  <i class="fa-solid fa-expand"></i> Extent
+                </button>
+                <button type="button" id="btn-measure" class="tool-btn" title="Measure geodesic distance" aria-pressed="false">
+                  <i class="fa-solid fa-ruler-horizontal"></i> Measure
+                </button>
+                <div class="map-stack-legend" aria-label="Map legend">
+                  <p class="map-stack-heading">Legend</p>
+                  <span class="legend-chip"><span class="leg-box" id="legend-swatch-matched"></span> Matched</span>
+                  <span class="legend-chip"><span class="leg-box" id="legend-swatch-unmatched"></span> Unmatched</span>
+                  <span class="legend-chip"><span class="leg-box" id="legend-swatch-reference"></span> Reference</span>
+                </div>
+                <button type="button" id="btn-toggle-styles" class="tool-btn" title="Show layer style controls" aria-pressed="false" aria-controls="map-style-panel">
+                  <i class="fa-solid fa-layer-group"></i> Layer styles
+                </button>
+                <aside id="map-style-panel" class="map-style-panel is-hidden" aria-label="Map layer styles">
+              <div class="map-style-panel-head">
+                <p class="map-style-title">Layer styles</p>
+                <button type="button" id="btn-reset-map-styles" class="tool-btn" title="Restore default colors, width, opacity, and pattern">Reset</button>
+              </div>
+              <p class="map-style-hint">Each color applies only to that layer. Lower destination opacity or change pattern to check overlap.</p>
+              <div class="map-layer-list">
+                <div class="map-layer" data-layer="matched">
+                  <div class="map-layer-toggle">
+                    <input type="checkbox" id="map-toggle-matched" checked title="Show or hide matched destination">
+                    <span class="map-layer-swatch" id="panel-swatch-matched" aria-hidden="true"></span>
+                    <span class="map-layer-name">Matched destination</span>
+                  </div>
+                  <div class="map-layer-style">
+                    <label class="map-style-row" for="map-color-matched"><span>Color</span><input type="color" id="map-color-matched" value="#16a34a"></label>
+                    <label class="map-style-row" for="map-width-matched"><span>Width</span><input type="range" id="map-width-matched" min="1" max="12" step="0.5" value="3"><em id="map-width-matched-val">3</em></label>
+                    <label class="map-style-row" for="map-opacity-matched"><span>Opacity</span><input type="range" id="map-opacity-matched" min="10" max="100" step="5" value="50"><em id="map-opacity-matched-val">50%</em></label>
+                    <label class="map-style-row" for="map-pattern-matched"><span>Pattern</span>
+                      <select id="map-pattern-matched">
+                        <option value="solid" selected>Solid</option>
+                        <option value="dashed">Dashed</option>
+                        <option value="dotted">Dotted</option>
+                        <option value="dashdot">Dash-dot</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+                <div class="map-layer" data-layer="unmatched">
+                  <div class="map-layer-toggle">
+                    <input type="checkbox" id="map-toggle-unmatched" checked title="Show or hide unmatched destination">
+                    <span class="map-layer-swatch" id="panel-swatch-unmatched" aria-hidden="true"></span>
+                    <span class="map-layer-name">Unmatched destination</span>
+                  </div>
+                  <div class="map-layer-style">
+                    <label class="map-style-row" for="map-color-unmatched"><span>Color</span><input type="color" id="map-color-unmatched" value="#ea580c"></label>
+                    <label class="map-style-row" for="map-width-unmatched"><span>Width</span><input type="range" id="map-width-unmatched" min="1" max="12" step="0.5" value="2"><em id="map-width-unmatched-val">2</em></label>
+                    <label class="map-style-row" for="map-opacity-unmatched"><span>Opacity</span><input type="range" id="map-opacity-unmatched" min="10" max="100" step="5" value="35"><em id="map-opacity-unmatched-val">35%</em></label>
+                    <label class="map-style-row" for="map-pattern-unmatched"><span>Pattern</span>
+                      <select id="map-pattern-unmatched">
+                        <option value="solid" selected>Solid</option>
+                        <option value="dashed">Dashed</option>
+                        <option value="dotted">Dotted</option>
+                        <option value="dashdot">Dash-dot</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+                <div class="map-layer" data-layer="reference">
+                  <div class="map-layer-toggle">
+                    <input type="checkbox" id="map-toggle-reference" checked title="Show or hide reference">
+                    <span class="map-layer-swatch" id="panel-swatch-reference" aria-hidden="true"></span>
+                    <span class="map-layer-name">Reference</span>
+                  </div>
+                  <div class="map-layer-style">
+                    <label class="map-style-row" for="map-color-reference"><span>Color</span><input type="color" id="map-color-reference" value="#64748b"></label>
+                    <label class="map-style-row" for="map-width-reference"><span>Width</span><input type="range" id="map-width-reference" min="1" max="12" step="0.5" value="3"><em id="map-width-reference-val">3</em></label>
+                    <label class="map-style-row" for="map-opacity-reference"><span>Opacity</span><input type="range" id="map-opacity-reference" min="10" max="100" step="5" value="95"><em id="map-opacity-reference-val">95%</em></label>
+                    <label class="map-style-row" for="map-pattern-reference"><span>Pattern</span>
+                      <select id="map-pattern-reference">
+                        <option value="solid">Solid</option>
+                        <option value="dashed" selected>Dashed</option>
+                        <option value="dotted">Dotted</option>
+                        <option value="dashdot">Dash-dot</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <label class="map-style-row map-style-stack" for="map-draw-order">
+                <span>Draw on top</span>
+                <select id="map-draw-order">
+                  <option value="destination" selected>Destination</option>
+                  <option value="reference">Reference</option>
+                </select>
+              </label>
+                </aside>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vertical Resizer Handle between Map and Table -->
+        <div class="resizer-row" id="row-resizer" title="Click and drag to resize Map / Table split">
+          <div class="resizer-handle-grip-horiz"></div>
+        </div>
+
+        <!-- Bottom Half: Data Grid Pane -->
+        <div class="grid-pane" id="grid-pane">
+          <div class="pane-header results-header">
+            <div class="pane-title">
+              <i class="fa-solid fa-table"></i> Overlay Results Table
+            </div>
+
+            <!-- Stats Summary Bar -->
+            <div class="stats-bar-compact">
+              <span>Total: <b id="stat-total">0</b></span>
+              <span>Matched: <b id="stat-matched" class="text-match">0</b></span>
+              <span>Unmatched: <b id="stat-unmatched">0</b></span>
+              <span>Rate: <b id="stat-rate">0%</b></span>
+              <span>Time: <b id="stat-time">0.00s</b></span>
+            </div>
+
+            <!-- Table Filters & Export Action -->
+            <div class="grid-tools">
+              <div class="table-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <label class="visually-hidden" for="table-search-input">Search records</label>
+                <input type="text" id="table-search-input" placeholder="Search records...">
+              </div>
+              <label class="visually-hidden" for="status-filter">Filter by match status</label>
+              <select id="status-filter" class="sci-select filter-select">
+                <option value="ALL">All Records</option>
+                <option value="On Corridor">On Corridor Only</option>
+                <option value="Off Corridor">Off Corridor Only</option>
+              </select>
+              
+              <!-- Export Results Dropdown Menu (Located directly above Table) -->
+              <div class="dropdown-export">
+                <button class="sci-btn sci-btn-export btn-export-toggle" id="btn-table-export" title="Export Results" disabled>
+                  <i class="fa-solid fa-download"></i> Export Results <i class="fa-solid fa-caret-down"></i>
+                </button>
+                <div class="dropdown-menu" id="table-export-menu">
+                  <button class="dropdown-item" data-format="shapefile"><i class="fa-solid fa-file-zipper"></i> Shapefile (.zip)</button>
+                  <button class="dropdown-item" data-format="excel"><i class="fa-solid fa-file-excel"></i> Excel Workbook (.xlsx)</button>
+                  <button class="dropdown-item" data-format="geojson"><i class="fa-solid fa-file-code"></i> GeoJSON (.geojson)</button>
+                  <button class="dropdown-item" data-format="csv"><i class="fa-solid fa-file-csv"></i> CSV Table (.csv)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Grid Table with Dynamic Sortable Columns & Overlap (mi) -->
+          <div class="table-scroll-wrap">
+            <table class="sci-table" id="results-table">
+              <thead>
+                <tr>
+                  <th class="sortable" data-col="Match_Stat" style="width: 100px;">Status <i class="fa-solid fa-sort sort-icon"></i></th>
+                  <th class="sortable" data-col="Dest_ID" title="From the Destination ID field you pick after loading a layer">Destination ID <i class="fa-solid fa-sort sort-icon"></i></th>
+                  <th class="sortable matched-id-col" data-col="Matched_ID">Matched ID(s) <i class="fa-solid fa-sort sort-icon"></i></th>
+                  <th class="sortable" data-col="Match_Cnt" style="width: 70px;">Count <i class="fa-solid fa-sort sort-icon"></i></th>
+                  <th class="sortable" data-col="Ovl_Ft" style="width: 105px;">Overlap (ft) <i class="fa-solid fa-sort sort-icon"></i></th>
+                  <th class="sortable" data-col="Ovl_Mi" style="width: 105px;">Overlap (mi) <i class="fa-solid fa-sort sort-icon"></i></th>
+                  <th class="sortable" data-col="Ovl_Pct" style="width: 85px;">Overlap % <i class="fa-solid fa-sort sort-icon"></i></th>
+                  <th class="sortable" data-col="Ang_Dif" style="width: 90px;">Angle Diff <i class="fa-solid fa-sort sort-icon"></i></th>
+                  <th class="sortable" data-col="Min_Ft" style="width: 95px;">Min Dist (ft) <i class="fa-solid fa-sort sort-icon"></i></th>
+                  <th class="sortable" data-col="QC_Flag" style="width: 120px;">QC Flag <i class="fa-solid fa-sort sort-icon"></i></th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <tr>
+                  <td colspan="10" class="table-empty-msg">No results. Load layers and run overlay to populate table.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Table Status Footer with Dynamic Sort & Filter Status -->
+          <div class="pane-footer">
+            <span id="table-count-display">Showing 0 of 0 records</span>
+            <span id="table-sort-indicator" class="table-sort-indicator">Sorted: Matched → Angle mismatch → Unmatched</span>
+          </div>
+        </div>
+
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Visual Scientific Matching Guide Modal -->
+  <div id="guide-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="guide-modal-title">
+    <div class="guide-modal-card">
+      <div class="guide-modal-header">
+        <div class="guide-modal-title" id="guide-modal-title">
+          <i class="fa-solid fa-circle-info" style="color: #2563eb;"></i> How this tool works <span class="version-badge">v1.0</span>
+        </div>
+        <button type="button" id="btn-close-guide" class="tool-btn" title="Close Guide"><i class="fa-solid fa-xmark"></i> Close</button>
+      </div>
+      <div class="guide-modal-body">
+        
+        <div class="guide-section">
+          <h4><i class="fa-solid fa-compass"></i> What this tool is for</h4>
+          <p>Use it when you have <strong>two line layers</strong> and need to know which <strong>destination</strong> segments sit on the same corridor as a <strong>reference</strong> network — then stamp a label from the reference onto the destination.</p>
+          <ul class="guide-use-list">
+            <li>Typical jobs: safety treatments vs Work Program items, bottlenecks vs SIS or RCI linework, candidate approaches vs a project layer. Reference can be any line network, not only Work Program.</li>
+            <li>Matching is <strong>geometry only</strong>: buffer, overlap length, and local heading. It does not join on ROADWAY, BMP/EMP, BEGIN_MILE / END_MILE, or Work Program / RCI locate status. Those LRS fields can be wrong; overlay uses the drawn linework.</li>
+            <li>After a spatial hit, destination receives match status, overlap, angle, QC, and a <strong>Matched ID</strong> you compose from reference attributes (Output labels). Those fields are labels, not a locate join.</li>
+          </ul>
+        </div>
+
+        <div class="guide-section">
+          <h4><i class="fa-solid fa-list-ol"></i> How a run works</h4>
+          <ul class="guide-use-list">
+            <li><strong>1. Input layers.</strong> Load destination and reference. Line files: shapefile (<code>.zip</code> or <code>.shp</code>+<code>.dbf</code>), GeoJSON, KML/KMZ, or CSV. After destination loads, pick the <strong>Destination ID field</strong> to show in the table (demo data often has <code>LocationID</code>; other files may use <code>OBJECTID</code> or another attribute). That choice is a label only.</li>
+            <li><strong>2. Match rules.</strong> Set buffer, min overlap, min target ratio, max angle, bearing window, and optional Parallel Fallback. Defaults stay unless you change them. <strong>Load sample demo</strong> sets min overlap to 75 ft and Unique Matched IDs for that example.</li>
+            <li><strong>3. Output labels.</strong> Pick reference fields (or an expression such as <code>{WPITEM}-{WPITMSEG}</code>) to build Matched ID after a spatial hit. If several references match one destination, keep every ID in the cell or unique IDs only. Count still lists every hit.</li>
+            <li><strong>Run</strong> computes overlay in this browser. The map draws reference behind destination (green matched, orange unmatched, slate dashed reference). The table sorts matched first, then angle mismatch, then unmatched. Export names use <code>destination_x_reference</code>.</li>
+          </ul>
+        </div>
+
+        <!-- Section: Parameter Breakdown (What is it & Why do we need it) -->
+        <div class="guide-section">
+          <h4><i class="fa-solid fa-list-check"></i> Parameter Breakdown &amp; Engineering Rationale</h4>
+          
+          <div class="diagram-card">
+            <h5>1. Buffer Distance (ft)</h5>
+            <div class="diagram-desc">
+              <b>What it is:</b> The lateral search corridor (width &plusmn;Buffer) generated around the destination centerline.<br>
+              <b>Why it is needed:</b> Two GIS line layers rarely share identical coordinates. Divided roads, medians, and digitizing offset are handled by a search width around the destination line. This tool does not snap to RCI / Work Program mileposts or use the linear referencing locate system.
+            </div>
+          </div>
+
+          <div class="diagram-card">
+            <h5>2. Min Overlap Length (ft)</h5>
+            <div class="diagram-desc">
+              <b>What it is:</b> The minimum shared longitudinal length that the reference line must run along the destination corridor.<br>
+              <b>Why it is needed:</b> Perpendicular cross-streets, overpasses, and turning ramps will briefly intersect the buffer corridor for 50–100 ft. Requiring a substantial minimum overlap (e.g. 300 ft) discards accidental intersection touches.
+            </div>
+          </div>
+
+          <div class="diagram-card">
+            <h5>3. Min Target Ratio (%)</h5>
+            <div class="diagram-desc">
+              <b>What it is:</b> The minimum proportion of the destination feature's total length that must be covered (<code>L_overlap / L_destination &times; 100</code>).<br>
+              <b>Why it is needed:</b> Ensures proportional match significance. A 300 ft overlap on a 5-mile (26,400 ft) segment is only 1.1% (a minor clip), whereas 300 ft on a 400 ft bottleneck is 75% (a major corridor match).
+            </div>
+          </div>
+
+          <div class="diagram-card">
+            <h5>4. Max Angle Delta (&deg;) — local window, same value as the results table</h5>
+            <div class="diagram-desc">
+              <b>What it is:</b> The maximum heading difference measured on a short window (default 500 ft) centered on the overlap, not the first-to-last vertex of the whole feature. A long or curving destination or reference line does not change the angle at this overlap.<br>
+              <b>Why it is needed:</b> Cross-streets are ~90° at the overlap and are rejected. The <code>Angle Diff</code> column is this same local value for the best match, so the filter and the table agree.<br>
+              <b>Modes:</b> Ignore line direction (default) folds reverse digitizing to 0°–90°. Check vertex direction keeps travel sense; opposite vertices report ~180°.
+            </div>
+          </div>
+
+          <div class="diagram-card">
+            <h5>5. Parallel Fallback (user-set coverage and distance)</h5>
+            <div class="diagram-desc">
+              <b>What it is:</b> A second rule for short destination lines that fail the primary min-overlap test. You set <b>Min Coverage (%)</b> and <b>Max Distance (ft)</b>. Primary matches still use Max Angle. Fallback heading may be looser: it allows up to the <strong>larger of Max Angle and 45°</strong> (so 45° when Max Angle is 30°).<br>
+              <b>Why it is needed:</b> Intersection approaches and short turn sticks are often under 75 ft long. If most of that stick sits on the corridor and stays close, it is the same roadway even when min overlap is not met. Defaults are 75% and 30 ft; raise coverage or tighten distance if too many crossings qualify.
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Geometric Vector Diagrams -->
+        <div class="guide-section">
+          <h4><i class="fa-solid fa-draw-polygon"></i> Geometric Corridor Vector Diagram</h4>
+          <div class="guide-diagram-grid">
+            <!-- Diagram 1: Buffer & Overlap -->
+            <div class="diagram-card">
+              <h5><i class="fa-solid fa-arrows-left-right-to-line"></i> Buffer Envelope &amp; Overlap</h5>
+              <div class="diagram-svg-wrap">
+                <svg viewBox="0 0 360 130" width="100%" height="120">
+                  <polygon points="30,30 330,30 330,80 30,80" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" stroke-dasharray="3,3"/>
+                  <text x="35" y="42" font-size="10" fill="#166534">± Buffer Envelope (e.g. 300 ft)</text>
+                  <line x1="30" y1="55" x2="330" y2="55" stroke="#18181b" stroke-width="3.5" stroke-linecap="round"/>
+                  <text x="35" y="70" font-size="10" font-weight="bold" fill="#18181b">Destination line (L_destination)</text>
+                  <line x1="60" y1="42" x2="300" y2="42" stroke="#ca8a04" stroke-width="2.5" stroke-dasharray="4,2"/>
+                  <text x="70" y="38" font-size="10" fill="#854d0e">Reference Line (within buffer)</text>
+                  <line x1="60" y1="90" x2="300" y2="90" stroke="#16a34a" stroke-width="2"/>
+                  <line x1="60" y1="85" x2="60" y2="95" stroke="#16a34a" stroke-width="2"/>
+                  <line x1="300" y1="85" x2="300" y2="95" stroke="#16a34a" stroke-width="2"/>
+                  <text x="130" y="105" font-size="10" font-weight="bold" fill="#15803d">Overlap Length (L_overlap)</text>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Diagram 2: Angle Delta Filter -->
+            <div class="diagram-card">
+              <h5><i class="fa-solid fa-compass"></i> Heading Angle Delta Filter</h5>
+              <div class="diagram-svg-wrap">
+                <svg viewBox="0 0 360 130" width="100%" height="120">
+                  <line x1="30" y1="65" x2="330" y2="65" stroke="#18181b" stroke-width="3" stroke-linecap="round"/>
+                  <text x="35" y="80" font-size="10" font-weight="bold" fill="#18181b">Destination heading at overlap</text>
+                  <line x1="70" y1="45" x2="230" y2="52" stroke="#16a34a" stroke-width="2.5"/>
+                  <text x="80" y="40" font-size="10" font-weight="bold" fill="#16a34a">Δθ ≤ 30° → Matched Corridor</text>
+                  <line x1="280" y1="10" x2="280" y2="120" stroke="#dc2626" stroke-width="2" stroke-dasharray="3,2"/>
+                  <text x="215" y="122" font-size="10" font-weight="bold" fill="#dc2626">Δθ ≈ 90° → Rejected Crossing</text>
+                  <circle cx="280" cy="65" r="7" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+                  <text x="277" y="69" font-size="10" font-weight="bold" fill="#dc2626">✕</text>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Parameter Reference Table -->
+        <div class="guide-section">
+          <h4><i class="fa-solid fa-table-list"></i> Recommended Settings Reference Table</h4>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Default</th>
+                <th>Recommended Range</th>
+                <th>When to Adjust</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Buffer (ft)</b></td>
+                <td><code>300 ft</code></td>
+                <td>100 – 500 ft</td>
+                <td>Increase for wide Interstate medians (e.g. 500 ft) or decrease for dense downtown grids (e.g. 100 ft).</td>
+              </tr>
+              <tr>
+                <td><b>Min Overlap (ft)</b></td>
+                <td><code>300 ft</code></td>
+                <td>100 – 1,000 ft</td>
+                <td>Increase to ignore short turn-lane connectors or ramps; decrease for short intersection bottlenecks.</td>
+              </tr>
+              <tr>
+                <td><b>Min Target Ratio (%)</b></td>
+                <td><code>10%</code></td>
+                <td>10% – 30%</td>
+                <td>10% lets a short reference item match a long destination. Raise it if too many glancing clips qualify.</td>
+              </tr>
+              <tr>
+                <td><b>Max Angle Delta (&deg;)</b></td>
+                <td><code>30&deg;</code></td>
+                <td>15&deg; – 45&deg;</td>
+                <td>Keep at 30&deg; for general highways. Increase to 45&deg; for curved cloverleaf interchange ramps.</td>
+              </tr>
+              <tr>
+                <td><b>Bearing Window (ft)</b></td>
+                <td><code>500 ft</code></td>
+                <td>200 – 1,000 ft</td>
+                <td>Heading uses this local stretch at the overlap, not the whole line. Increase on gentle interstate curves; decrease in dense grids so a nearby turn is not mixed into the heading.</td>
+              </tr>
+              <tr>
+                <td><b>Fallback Min Coverage (%)</b></td>
+                <td><code>75%</code></td>
+                <td>50% – 90%</td>
+                <td>Lower for very short dests that only clip the corridor. Raise if crossing streets start matching.</td>
+              </tr>
+              <tr>
+                <td><b>Fallback Max Distance (ft)</b></td>
+                <td><code>30 ft</code></td>
+                <td>15 – 50 ft</td>
+                <td>Widen for divided dual carriageways. Tighten in dense grids so a nearby parallel street does not qualify.</td>
+              </tr>
+              <tr>
+                <td><b>Working CRS</b></td>
+                <td><code>WGS84</code></td>
+                <td>Always EPSG:4326 after load</td>
+                <td>Source CRS fallback is used only when a projected file has no .prj. Distances and angles are geodesic in WGS84.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="guide-section">
+          <h4><i class="fa-solid fa-map"></i> Map, table, and export</h4>
+          <ul class="guide-use-list">
+            <li><strong>Map.</strong> Destination draws in front (green matched, orange unmatched). Reference is a dashed slate line behind. <strong>Basemap → None</strong> hides street/aerial tiles. <strong>Extent</strong> zooms to loaded layers. The compass (top right) returns the map to north. A scale bar sits at the lower left. <strong>Measure</strong> draws a geodesic path in feet (and miles when long); Escape or Clear exits. Layer styles control color, width, opacity, and pattern. Segment details open in the <strong>lower-right card</strong>, not on the line, so overlap stays visible after a table click.</li>
+            <li><strong>Table.</strong> <strong>Destination ID</strong> comes from the field you pick after load. <strong>Matched ID(s)</strong> lists reference labels; more than five IDs show the first five and <em>See all</em>. Default sort is Matched → Angle mismatch → Unmatched. Click a row to zoom the map and fill the corner card.</li>
+            <li><strong>Export.</strong> Shapefile, Excel, GeoJSON, or CSV. The download name is <code>{destination}_x_{reference}</code>. The file still contains every Matched ID, not the truncated table view. Shapefile zip includes a <code>*_MatchRules.txt</code> sidecar by default (Match rules checkbox); uncheck to omit it. Extra files in the zip do not change the .shp/.dbf.</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+  <div id="help-tip-bubble" class="help-tip-bubble" role="tooltip" hidden></div>
+
+  <!-- Client-Side GIS & Spatial Libraries -->
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
+  <!-- App Engine & Controllers (100% Client-Side Pure JS) -->
+  <script src="./static/js/shapefile_export.js?v=v17"></script>
+  <script src="./static/js/client_engine.js?v=v21"></script>
+  <script src="./static/js/map_viewer.js?v=v23"></script>
+  <script src="./static/js/app.js?v=v33"></script>
+</body>
+</html>

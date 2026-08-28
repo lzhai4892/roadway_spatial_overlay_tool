@@ -1,0 +1,35 @@
+{
+  "label": "Yellow Retroreflect Backplate",
+  "summary": {
+    "total": 2541,
+    "matched": 1512,
+    "unmatched": 1029,
+    "match_pct": 59.5,
+    "unique_wp_ids": 692,
+    "qc_flags": {
+      "Unmatched": 926,
+      "Verified Parallel Fallback": 229,
+      "Verified Match": 1283,
+      "No Match - Angle Mismatch": 83,
+      "No Match - Low Overlap": 16,
+      "No Match - Low Target Ratio": 4
+    },
+    "duration_seconds": 2.33
+  },
+  "warnings": [],
+  "options": {
+    "buffer_distance": 300,
+    "min_overlap_length": 75,
+    "min_target_overlap_ratio": 10,
+    "max_angle_diff_deg": 30,
+    "bearing_window_length": 500,
+    "angle_mode": "undirected",
+    "enable_strong_fallback": true,
+    "keep_duplicates": false,
+    "custom_expression_template": "{WPITEM}-{WPITMSEG}",
+    "reference_columns": [
+      "WPITEM",
+      "WPITMSEG"
+    ]
+  }
+}

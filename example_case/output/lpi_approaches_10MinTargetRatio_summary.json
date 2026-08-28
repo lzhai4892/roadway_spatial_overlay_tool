@@ -1,0 +1,36 @@
+{
+  "label": "LPI approaches",
+  "summary": {
+    "total": 2494,
+    "matched": 1097,
+    "unmatched": 1397,
+    "match_pct": 44,
+    "unique_wp_ids": 456,
+    "qc_flags": {
+      "Verified Match": 1021,
+      "Unmatched": 850,
+      "No Match - Angle Mismatch": 525,
+      "Verified Parallel Fallback": 76,
+      "No Match - Low Overlap": 22
+    },
+    "duration_seconds": 2.18
+  },
+  "warnings": [
+    "Filtered out 887 non-line or empty geometry records."
+  ],
+  "options": {
+    "buffer_distance": 300,
+    "min_overlap_length": 75,
+    "min_target_overlap_ratio": 10,
+    "max_angle_diff_deg": 30,
+    "bearing_window_length": 500,
+    "angle_mode": "undirected",
+    "enable_strong_fallback": true,
+    "keep_duplicates": false,
+    "custom_expression_template": "{WPITEM}-{WPITMSEG}",
+    "reference_columns": [
+      "WPITEM",
+      "WPITMSEG"
+    ]
+  }
+}
