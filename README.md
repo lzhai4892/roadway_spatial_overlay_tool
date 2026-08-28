@@ -48,3 +48,7 @@ Or use VS Code Live Server / `npx serve`. Then open `http://127.0.0.1:5000`.
 | `Ang_Dif` | Local heading of the longest accepted match, or the best miss if unmatched |
 | `Min_Ft` | Distance for that same candidate |
 | `QC_Flag` | Verified match / fallback, or why the best miss failed |
+
+## License
+
+[MIT](LICENSE)
