@@ -4,6 +4,10 @@ Browser GIS corridor overlay. Destination linework is matched to a reference lay
 
 Developed by [lzhai4892](https://github.com/lzhai4892). The app is `index.html` plus `static/js`. Calculations run in the browser.
 
+![Roadway Line-to-Line Overlay Tool in operation](static/images/overlay_operating.png)
+
+The screenshot shows a sample run: destination and reference loaded, overlay computed, matches drawn on the map (green / orange) and listed in the results table.
+
 ---
 
 ## How to run
