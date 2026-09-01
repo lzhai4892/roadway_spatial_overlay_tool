@@ -2,7 +2,7 @@
 
 Browser GIS corridor overlay. Destination linework is matched to a reference layer using **geometry only**: buffer, overlap, and local heading. ROADWAY IDs, mileposts, and Work Program / RCI locate fields are not used to find matches.
 
-Developed by [lzhai4892](https://github.com/lzhai4892). The app is `index.html` plus `static/js`. Calculations run in the browser.
+The app is `index.html` plus `static/js`. Calculations run in the browser.
 
 ![Roadway Line-to-Line Overlay Tool in operation](static/images/overlay_operating.png)
 
