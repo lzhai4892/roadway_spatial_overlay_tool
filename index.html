@@ -9,12 +9,10 @@
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="./static/favicon.svg?v=v2">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./static/vendor/fonts/ibm-plex.css">
 
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./static/vendor/maplibre-gl/maplibre-gl.css">
+  <link rel="stylesheet" href="./static/vendor/font-awesome/css/all.min.css">
   <link rel="stylesheet" href="./static/css/styles.css?v=v43">
 </head>
 <body>
@@ -736,18 +734,18 @@
   <div id="help-tip-bubble" class="help-tip-bubble" role="tooltip" hidden></div>
 
   <!-- Client-Side GIS & Spatial Libraries -->
-  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="./static/vendor/maplibre-gl/maplibre-gl.js"></script>
+  <script src="./static/vendor/proj4/proj4.js"></script>
+  <script src="./static/vendor/turf/turf.min.js"></script>
+  <script src="./static/vendor/jszip/jszip.min.js"></script>
+  <script src="./static/vendor/shpjs/shp.js"></script>
+  <script src="./static/vendor/papaparse/papaparse.min.js"></script>
+  <script src="./static/vendor/xlsx/xlsx.full.min.js"></script>
   
   <!-- App Engine & Controllers (100% Client-Side Pure JS) -->
   <script src="./static/js/shapefile_export.js?v=v17"></script>
   <script src="./static/js/client_engine.js?v=v21"></script>
   <script src="./static/js/map_viewer.js?v=v23"></script>
-  <script src="./static/js/app.js?v=v33"></script>
+  <script src="./static/js/app.js?v=v34"></script>
 </body>
 </html>

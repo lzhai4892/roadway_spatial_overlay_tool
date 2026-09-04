@@ -15,13 +15,18 @@ The screenshot shows a sample run: destination and reference loaded, overlay com
 Any static file server works. You need HTTP (not `file://`) if you want **Sample** to fetch `example_case/` files.
 
 ### Windows
-Double-click `run_app.bat`. It starts a static server if Python is on PATH, then opens `http://127.0.0.1:5000`.
+
+Double-click `run_app.bat`. It starts a local file server with PowerShell (no Python) and opens your browser automatically. It uses `http://127.0.0.1:5000`, falling back to the next free port if 5000 is taken, and prints the address it chose. Closing the window stops the server; re-running it shuts down any server left over from a previous run.
 
 ### Any OS
-```bash
-python -m http.server 5000
-```
-Or use VS Code Live Server / `npx serve`. Then open `http://127.0.0.1:5000`.
+
+Any static file server works — VS Code Live Server, `npx serve`, or `python -m http.server 5000`. Then open the printed `http://` address.
+
+### Offline use
+
+No Python, no Node, and no internet connection are required. Every library the app depends on (MapLibre GL, Turf, proj4, shpjs, JSZip, PapaParse, SheetJS, Font Awesome, and the IBM Plex fonts) is vendored under `static/vendor/`, so loading layers, running the overlay, and exporting all work on an air-gapped machine.
+
+The only online component is the basemap imagery, which streams from OpenFreeMap and Esri. Without a connection, set **Map Tools → Basemap → None**; your layers still draw normally on a plain background.
 
 ---
 
@@ -43,15 +48,15 @@ Or use VS Code Live Server / `npx serve`. Then open `http://127.0.0.1:5000`.
 
 ## Result fields
 
-| Field | Meaning |
-|:---|:---|
-| `Match_Stat` | `"On Corridor"` or `"Off Corridor"` |
-| `Matched_ID` | Labels from the expression template (not used to join) |
-| `Match_Cnt` | Number of matching reference parts |
-| `Ovl_Ft` / `Ovl_Mi` / `Ovl_Pct` | Destination coverage by accepted matches |
-| `Ang_Dif` | Local heading of the longest accepted match, or the best miss if unmatched |
-| `Min_Ft` | Distance for that same candidate |
-| `QC_Flag` | Verified match / fallback, or why the best miss failed |
+| Field                           | Meaning                                                                    |
+| :------------------------------ | :------------------------------------------------------------------------- |
+| `Match_Stat`                    | `"On Corridor"` or `"Off Corridor"`                                        |
+| `Matched_ID`                    | Labels from the expression template (not used to join)                     |
+| `Match_Cnt`                     | Number of matching reference parts                                         |
+| `Ovl_Ft` / `Ovl_Mi` / `Ovl_Pct` | Destination coverage by accepted matches                                   |
+| `Ang_Dif`                       | Local heading of the longest accepted match, or the best miss if unmatched |
+| `Min_Ft`                        | Distance for that same candidate                                           |
+| `QC_Flag`                       | Verified match / fallback, or why the best miss failed                     |
 
 ## License
 

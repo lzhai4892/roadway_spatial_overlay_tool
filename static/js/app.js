@@ -699,7 +699,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load example-case layers (real WP + treatment linework)
   // ----------------------------------------------------
   const SAMPLE_DEST_ZIP = "./example_case/candidates/Left-Turn ProtPerm to Prot Only_shp.zip";
-  const SAMPLE_REF_BASE = "./example_case/work-programs/Work_Program_Identify";
+  const SAMPLE_REF_ZIP = "./example_case/work-programs/Work_Program_Identify.zip";
 
   async function fetchExampleAsFile(relPath, fileName) {
     const res = await fetch(encodeURI(relPath));
@@ -739,12 +739,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (mapViewer) mapViewer.displayTargetPreview(targetInfo.geojson);
 
       showToast("Loading example Work Program Identify layer…", "info");
-      const refFiles = await Promise.all([
-        fetchExampleAsFile(`${SAMPLE_REF_BASE}.shp`, "Work_Program_Identify.shp"),
-        fetchExampleAsFile(`${SAMPLE_REF_BASE}.dbf`, "Work_Program_Identify.dbf"),
-        fetchExampleAsFile(`${SAMPLE_REF_BASE}.prj`, "Work_Program_Identify.prj"),
-      ]);
-      const refInfo = await ClientGISEngine.parseUploadedFiles(refFiles, {
+      const refFile = await fetchExampleAsFile(
+        SAMPLE_REF_ZIP,
+        "Work_Program_Identify.zip"
+      );
+      const refInfo = await ClientGISEngine.parseUploadedFiles([refFile], {
         source_crs: "3087",
       });
       refLayerData = refInfo;
